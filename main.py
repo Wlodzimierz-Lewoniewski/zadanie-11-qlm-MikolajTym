@@ -1,9 +1,39 @@
-#Przykład otrzymania wartości wprowadzonej przy użyciu funkcji input().
-wyraz=input()
+import re
+from collections import Counter
 
-#W celu poprawnego działania kodu w ramach GitHub Classroom warto dodatkowo użyć funkcję strip()
-#To pozwoli na usunięcie spacji oraz innych "spacjopodobnych" znaków (tabulacja \t', przejście do nowej linii '\n' lub '\r' etc.) z "głowy" i "ogona" (lewej i prawej części wyrazu).
-wyraz=wyraz.strip()
+def get_data():
+    n = int(input())
+    docs = []
+    for i in range(n+1):
+        docs.append(input())
+    return docs
+docs = get_data()
 
-#Wydruk na ekranie (w konsoli)
-print ('Ten wyraz został wprowadzony:', wyraz)
+docs = [re.sub(r"[^\w\s]", "", doc.lower()).split() for doc in docs]
+query = docs[-1]
+docs = docs[:-1]
+
+corpus = []
+for doc in docs:
+    for token in doc:
+        corpus.append(token)
+
+lambda_value = 0.5
+probs = []
+for doc_index, doc in enumerate(docs):
+    doc_counter = Counter(doc)
+    corpus_counter = Counter(corpus)
+    words_num = len(doc)
+    words_corpus_num = len(corpus)
+
+    prob = 1
+    for token in query:
+        smoothed = lambda_value * (doc_counter[token] / words_num) + (1 - lambda_value) * (corpus_counter[token] / words_corpus_num)
+        prob = prob * smoothed
+    probs.append((doc_index, prob))
+probs = sorted(probs, key=lambda x: x[1], reverse=True)
+
+results = []
+for result in probs:
+    results.append(result[0])
+print(results)
